@@ -23,7 +23,14 @@ return new class extends Migration
                 $table->foreign('career_id')->references('id')->on('careers');
                 $table->integer('course_id')->unsigned();
                 $table->foreign('course_id')->references('id')->on('courses');
-                $table->date('date');
+                $table->integer('parallel_id')->unsigned();
+                $table->foreign('parallel_id')->references('id')->on('catalogs');
+                $table->integer('working_day_id')->unsigned();
+                $table->foreign('working_day_id')->references('id')->on('catalogs');
+
+                $table->integer('period_id')->unsigned();
+                $table->foreign('period_id')->references('id')->on('catalogs');
+
                 $table->integer('state_id')->unsigned();
                 $table->foreign('state_id')->references('id')->on('catalogs');
                 $table->integer('type_enrollment_id')->unsigned();
