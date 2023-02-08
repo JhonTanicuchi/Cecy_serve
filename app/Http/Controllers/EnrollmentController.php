@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Enrollment;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 
 class EnrollmentController extends Controller
 {
-    public function index()
+    public function getEnrollments()
     {
 
         $enrollments = Enrollment::all();
@@ -35,16 +37,24 @@ class EnrollmentController extends Controller
         ], 200);
     }
 
-    //funcion para obtener una lista de matriculas por cuatro parámetros opcionales:carrera,curso,paralelo,periodo
+    //función para obtener una lista de matriculas por cuatro parámetros opcionales:carrera,curso,paralelo,periodo
 
-    public function getEnrollments($career = null, $course = null, $parallel = null,$working_day=null, $period = null)
+    public function getEnrollmentsByParams(Request $request)
     {
-        $enrollments = Enrollment::where('career_id', 'like', '%' . $career . '%')
-            ->where('course_id', 'like', '%' . $course . '%')
-            ->where('parallel_id', 'like', '%' . $parallel . '%')
-            ->where('working_day_id', 'like', '%' . $working_day . '%')
-            ->where('period_id', 'like', '%' . $period . '%')
-            ->get();
+        $params = $request->all();
+
+        $query = Enrollment::query();
+
+        foreach ($params as $param) {
+            $column = $param['type'];
+            if (!Schema::hasColumn('enrollments', $column)) {
+                continue;
+            }
+            $query->where($column, 'like', '%' . $param['term'] . '%');
+        }
+
+
+        $enrollments = $query->get();
 
         //popular el objeto student
         foreach ($enrollments as $enrollment) {
@@ -69,11 +79,13 @@ class EnrollmentController extends Controller
         ], 200);
     }
 
-    //funcion para obtener una lista de matriculas por el tipo de matricula
+
+    //función para obtener una lista de matriculas por el value deltipo de matricula que es un catalogo
     public function getEnrollmentsByType($type)
     {
-        $enrollments = Enrollment::where('type_enrollment_id', 'like', '%' . $type . '%')
-            ->get();
+        $enrollments = Enrollment::whereHas('typeEnrollment', function ($query) use ($type) {
+            $query->where('value',  $type);
+        })->get();
 
         //popular el objeto student
         foreach ($enrollments as $enrollment) {
@@ -98,7 +110,7 @@ class EnrollmentController extends Controller
         ], 200);
     }
 
-    //funcion para obtener una lista de matriculas por termino de búsqueda
+    //función para obtener una lista de matriculas por termino de búsqueda
     public function getEnrollmentsBySearch($term = null)
     {
         $enrollments = Enrollment::where('id', 'like', '%' . $term . '%')
